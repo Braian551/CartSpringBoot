@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#020617">
+    <title th:text="${pageTitle ?: 'Carritos'} + ' · Spring Cart'">Carritos · Spring Cart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body>
+<header th:fragment="header" class="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <a th:href="@{/cart}" class="flex items-center gap-3 text-white">
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold shadow-lg shadow-blue-950/50">SC</span>
+            <span>
+                <span class="block text-sm font-semibold tracking-wide">Spring Cart</span>
+                <span class="block text-xs text-slate-500">Panel administrativo</span>
+            </span>
+        </a>
+
+        <nav class="flex items-center gap-2 sm:gap-4" aria-label="Navegación principal">
+            <a th:href="@{/cart}" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">Carritos</a>
+            <a th:href="@{/cart/new}" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 sm:px-4">
+                <span aria-hidden="true" class="text-lg leading-none">+</span>
+                <span>Nuevo carrito</span>
+            </a>
+        </nav>
+    </div>
+</header>
+</body>
+</html>

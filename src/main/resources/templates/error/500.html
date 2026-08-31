@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+<header th:replace="~{fragments/header :: header}"></header>
+
+<main class="mx-auto flex max-w-3xl flex-1 items-center justify-center px-4 py-24 sm:px-6">
+    <section class="w-full rounded-2xl border border-slate-800 bg-slate-900 px-6 py-12 text-center shadow-2xl shadow-slate-950/30 sm:px-10">
+        <p class="font-mono text-7xl font-bold tracking-tight text-red-500">500</p>
+        <h1 class="mt-6 text-2xl font-semibold text-white">No se pudo completar la solicitud</h1>
+        <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-400">Ocurrió un error inesperado. Inténtalo nuevamente más tarde.</p>
+        <a th:href="@{/cart}" class="mt-8 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40">Volver a carritos</a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

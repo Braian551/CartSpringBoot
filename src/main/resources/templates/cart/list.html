@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+<header th:replace="~{fragments/header :: header}"></header>
+
+<main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <section class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="mb-2 text-sm font-medium text-blue-400">Operaciones</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Carritos de compra</h1>
+            <p class="mt-3 max-w-2xl text-slate-400">Administra los carritos asociados a usuarios y sesiones.</p>
+        </div>
+        <a th:href="@{/cart/new}" class="inline-flex w-fit items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40">
+            <span aria-hidden="true" class="text-lg leading-none">+</span>
+            Crear carrito
+        </a>
+    </section>
+
+    <section th:if="${#lists.isEmpty(carts)}" class="rounded-2xl border border-dashed border-slate-700 bg-slate-900/70 px-6 py-16 text-center shadow-2xl shadow-slate-950/30">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 text-2xl text-blue-400">□</div>
+        <h2 class="mt-5 text-lg font-semibold text-white">No hay carritos registrados</h2>
+        <p class="mx-auto mt-2 max-w-md text-sm text-slate-400">Comienza creando un carrito para verlo aparecer en este panel.</p>
+        <a th:href="@{/cart/new}" class="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40">
+            <span aria-hidden="true" class="text-lg leading-none">+</span>
+            Crear carrito
+        </a>
+    </section>
+
+    <section th:unless="${#lists.isEmpty(carts)}" class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl shadow-slate-950/30">
+        <div class="flex items-center justify-between border-b border-slate-800 px-5 py-4 sm:px-6">
+            <div>
+                <h2 class="font-semibold text-white">Carritos registrados</h2>
+                <p class="mt-1 text-sm text-slate-500" th:text="${#lists.size(carts)} + ' registro(s)'">0 registros</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[900px] text-left text-sm">
+                <thead class="bg-slate-800/60 text-xs uppercase tracking-wider text-slate-400">
+                <tr>
+                    <th scope="col" class="px-5 py-4 font-medium sm:px-6">ID</th>
+                    <th scope="col" class="px-5 py-4 font-medium sm:px-6">ID de usuario</th>
+                    <th scope="col" class="px-5 py-4 font-medium sm:px-6">ID de sesión</th>
+                    <th scope="col" class="px-5 py-4 font-medium sm:px-6">Creado</th>
+                    <th scope="col" class="px-5 py-4 font-medium sm:px-6">Actualizado</th>
+                    <th scope="col" class="px-5 py-4 text-right font-medium sm:px-6">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cart : ${carts}" class="border-t border-slate-800 transition hover:bg-slate-800/40">
+                    <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-slate-500 sm:px-6" th:text="${cart.id}">1</td>
+                    <td class="max-w-[180px] truncate px-5 py-4 font-medium text-white sm:px-6" th:text="${cart.userId ?: 'Sin usuario'}">user-1</td>
+                    <td class="max-w-[220px] truncate px-5 py-4 text-slate-400 sm:px-6" th:text="${cart.sessionId ?: 'Sin sesión'}">session-1</td>
+                    <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-500 sm:px-6" th:text="${#temporals.format(cart.createdAt, 'dd/MM/yyyy HH:mm')}">24/08/2026 10:30</td>
+                    <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-500 sm:px-6" th:text="${#temporals.format(cart.updatedAt, 'dd/MM/yyyy HH:mm')}">24/08/2026 10:30</td>
+                    <td class="px-5 py-4 sm:px-6">
+                        <div class="flex items-center justify-end gap-3 text-xs font-medium">
+                            <a th:href="@{/cart/{id}(id=${cart.id})}" class="text-slate-300 transition hover:text-white">Ver</a>
+                            <a th:href="@{/cart/{id}/edit(id=${cart.id})}" class="text-amber-400 transition hover:text-amber-300">Editar</a>
+                            <form th:action="@{/cart/{id}/delete(id=${cart.id})}" method="post" class="inline" onsubmit="return confirm('¿Seguro que deseas eliminar este carrito?')">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit" class="text-red-400 transition hover:text-red-300">Eliminar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <nav th:if="${totalPages > 1}" class="flex items-center justify-between border-t border-slate-800 px-5 py-4 text-sm sm:px-6" aria-label="Paginación de carritos">
+            <a th:if="${hasPrevious}" th:href="@{/cart(page=${currentPage - 1},size=${pageSize})}" class="text-slate-300 transition hover:text-white">Anterior</a>
+            <span th:unless="${hasPrevious}" class="text-slate-600">Anterior</span>
+            <span class="text-slate-500" th:text="|Página ${displayPage} de ${totalPages}|">Página 1 de 1</span>
+            <a th:if="${hasNext}" th:href="@{/cart(page=${currentPage + 1},size=${pageSize})}" class="text-slate-300 transition hover:text-white">Siguiente</a>
+            <span th:unless="${hasNext}" class="text-slate-600">Siguiente</span>
+        </nav>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

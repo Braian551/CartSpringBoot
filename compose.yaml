@@ -1,0 +1,20 @@
+services:
+  mysql:
+    image: 'mysql:8.4.7'
+    environment:
+      - 'MYSQL_DATABASE=angelow'
+      - 'MYSQL_PASSWORD=secret'
+      - 'MYSQL_ROOT_PASSWORD=verysecret'
+      - 'MYSQL_USER=myuser'
+    ports:
+      - '3309:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mysql_data:
