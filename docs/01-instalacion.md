@@ -35,27 +35,27 @@ docker compose version
 
 Si Docker Desktop está apagado, inicia Docker Desktop y repite los comandos antes de continuar.
 
-## 3. Iniciar MySQL
+## 3. Iniciar Angelow y su base de carritos
 
-Desde la raíz del proyecto:
+Desde `C:\laragon\www\Angelow_microservices`, inicia `cart-db` para que el servicio Java consuma la base compartida:
 
 ~~~powershell
-docker compose up -d
+docker compose up -d cart-db
 ~~~
 
-El comando crea o inicia el servicio mysql en segundo plano. Comprueba el estado:
+Comprueba el estado:
 
 ~~~powershell
 docker compose ps
 ~~~
 
-Deberías ver un contenedor del servicio mysql en estado Up y el puerto publicado 3309 hacia el puerto 3306 del contenedor. Si acaba de arrancar y todavía no acepta conexiones, espera unos segundos y revisa:
+Debes ver `angelow_cart_db` en estado `Up` y el puerto publicado 5435 hacia el puerto 5432 del contenedor. Si acaba de arrancar y todavía no acepta conexiones, revisa:
 
 ~~~powershell
-docker compose logs --tail 100 mysql
+docker compose logs --tail 100 cart-db
 ~~~
 
-## 4. Iniciar Spring Boot
+## 4. Iniciar el microservicio Java
 
 En otra ventana de PowerShell, vuelve a la raíz del proyecto y ejecuta el wrapper de Maven para Windows:
 
@@ -63,35 +63,35 @@ En otra ventana de PowerShell, vuelve a la raíz del proyecto y ejecuta el wrapp
 .\mvnw.cmd spring-boot:run
 ~~~
 
-La aplicación lee la configuración de src/main/resources/application.properties, escucha en el puerto 8081 y conecta con MySQL publicado en localhost:3309.
+La aplicación lee la configuración de src/main/resources/application.properties, escucha en el puerto 8081 y conecta con PostgreSQL publicado en localhost:5435.
 
 ## 5. Abrir la aplicación
 
 Abre:
 
 ~~~text
-http://localhost:8081/cart
+http://localhost:8081/api/admin/carts
 ~~~
 
-La ruta http://localhost:8081/cart/ también existe y redirige a /cart.
+La vista didáctica MVC original continúa disponible en `http://localhost:8081/cart`.
 
 ## 6. Detener el entorno
 
 Para detener Spring, pulsa Ctrl+C en la ventana donde se está ejecutando.
 
-Para detener el contenedor MySQL sin eliminar sus datos:
+Para detener el contenedor Java sin eliminar los datos de Angelow:
 
 ~~~powershell
 docker compose down
 ~~~
 
-Para iniciarlo de nuevo:
+Para iniciar de nuevo la API:
 
 ~~~powershell
 docker compose up -d
 ~~~
 
-> **Advertencia:** no ejecutes docker compose down -v si deseas conservar los datos de MySQL. La opción -v elimina el volumen mysql_data y puede destruir los registros persistidos.
+> **Advertencia:** no elimines volúmenes desde Angelow si deseas conservar `cart_db_data`; contiene los registros compartidos.
 
 ## Comprobación rápida
 
@@ -106,4 +106,3 @@ docker compose ps
 ~~~
 
 Si la aplicación no inicia, consulta [10 — Troubleshooting](10-troubleshooting.md).
-

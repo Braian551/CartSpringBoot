@@ -27,6 +27,48 @@
         </a>
     </section>
 
+    <section class="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-2xl shadow-slate-950/30 sm:p-6">
+        <div class="mb-5">
+            <p class="text-sm font-medium text-blue-400">Búsquedas JPA parametrizadas</p>
+            <h2 class="mt-1 text-lg font-semibold text-white">Filtrar carritos</h2>
+            <p class="mt-2 text-sm text-slate-400">
+                Completa usuario y sesión para buscar con <strong class="text-slate-300">Y</strong>.
+                La búsqueda global consulta ID, usuario y sesión con <strong class="text-slate-300">OR</strong>.
+            </p>
+        </div>
+
+        <form th:action="@{/cart}" method="get" class="grid gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+            <div>
+                <label for="userId" class="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-400">ID de usuario (Y)</label>
+                <input id="userId" name="userId" type="search" maxlength="50" th:value="${searchUserId}"
+                       placeholder="Ej. user-123"
+                       class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+            </div>
+            <div>
+                <label for="sessionId" class="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-400">ID de sesión (Y)</label>
+                <input id="sessionId" name="sessionId" type="search" maxlength="255" th:value="${searchSessionId}"
+                       placeholder="Ej. session-abc"
+                       class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+            </div>
+            <div class="flex gap-3 lg:justify-end">
+                <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40">Buscar con Y</button>
+                <a th:href="@{/cart}" class="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white">Limpiar</a>
+            </div>
+        </form>
+
+        <form th:action="@{/cart}" method="get" class="mt-4">
+            <div>
+                <label for="orSearch" class="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-400">Búsqueda global (OR: ID, usuario o sesión)</label>
+                <div class="flex flex-col gap-3 sm:flex-row">
+                    <input id="orSearch" name="orSearch" type="search" maxlength="255" th:value="${orSearch}"
+                           placeholder="Ej. 42 o user-123"
+                           class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                    <button type="submit" class="inline-flex items-center justify-center rounded-lg border border-blue-500/50 px-4 py-2.5 text-sm font-medium text-blue-300 transition hover:bg-blue-500/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40">Buscar con OR</button>
+                </div>
+            </div>
+        </form>
+    </section>
+
     <section th:unless="${#lists.isEmpty(carts)}" class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl shadow-slate-950/30">
         <div class="flex items-center justify-between border-b border-slate-800 px-5 py-4 sm:px-6">
             <div>
@@ -70,10 +112,10 @@
         </div>
 
         <nav th:if="${totalPages > 1}" class="flex items-center justify-between border-t border-slate-800 px-5 py-4 text-sm sm:px-6" aria-label="Paginación de carritos">
-            <a th:if="${hasPrevious}" th:href="@{/cart(page=${currentPage - 1},size=${pageSize})}" class="text-slate-300 transition hover:text-white">Anterior</a>
+            <a th:if="${hasPrevious}" th:href="@{/cart(page=${currentPage - 1},size=${pageSize},userId=${searchUserId},sessionId=${searchSessionId},orSearch=${orSearch})}" class="text-slate-300 transition hover:text-white">Anterior</a>
             <span th:unless="${hasPrevious}" class="text-slate-600">Anterior</span>
             <span class="text-slate-500" th:text="|Página ${displayPage} de ${totalPages}|">Página 1 de 1</span>
-            <a th:if="${hasNext}" th:href="@{/cart(page=${currentPage + 1},size=${pageSize})}" class="text-slate-300 transition hover:text-white">Siguiente</a>
+            <a th:if="${hasNext}" th:href="@{/cart(page=${currentPage + 1},size=${pageSize},userId=${searchUserId},sessionId=${searchSessionId},orSearch=${orSearch})}" class="text-slate-300 transition hover:text-white">Siguiente</a>
             <span th:unless="${hasNext}" class="text-slate-600">Siguiente</span>
         </nav>
     </section>

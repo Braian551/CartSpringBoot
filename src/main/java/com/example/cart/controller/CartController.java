@@ -55,12 +55,23 @@ public class CartController {
     public String listCarts(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", required = false) Integer requestedSize,
+            @RequestParam(name = "userId", defaultValue = "") String requestedUserId,
+            @RequestParam(name = "sessionId", defaultValue = "") String requestedSessionId,
+            @RequestParam(name = "orSearch", defaultValue = "") String requestedOrSearch,
             Model model) {
         int size = requestedSize == null ? cartProperties.getDefaultPageSize() : requestedSize;
         validatePageParameters(page, size);
+        String userId = normalizeSearch(requestedUserId, 50);
+        String sessionId = normalizeSearch(requestedSessionId, 255);
+        String orSearch = normalizeSearch(requestedOrSearch, 255);
+
+        if (!orSearch.isBlank() && (!userId.isBlank() || !sessionId.isBlank())) {
+            throw new InvalidCartRequestException();
+        }
+
         try {
-            Page<Cart> cartsPage = cartRepository.findAll(
-                    PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
+            PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
+            Page<Cart> cartsPage = findCarts(pageRequest, userId, sessionId, orSearch);
 
             model.addAttribute("carts", cartsPage.getContent());
             model.addAttribute("currentPage", page);
@@ -69,12 +80,39 @@ public class CartController {
             model.addAttribute("totalPages", cartsPage.getTotalPages());
             model.addAttribute("hasPrevious", cartsPage.hasPrevious());
             model.addAttribute("hasNext", cartsPage.hasNext());
+            model.addAttribute("searchUserId", userId);
+            model.addAttribute("searchSessionId", sessionId);
+            model.addAttribute("orSearch", orSearch);
             model.addAttribute("pageTitle", "Carritos");
             return "cart/list";
         } catch (RuntimeException exception) {
             log.error("Failed to list carts", exception);
             throw exception;
         }
+    }
+
+    private Page<Cart> findCarts(PageRequest pageRequest, String userId, String sessionId, String orSearch) {
+        if (!orSearch.isBlank()) {
+            Integer id = parseSearchId(orSearch);
+            log.info("Searching carts with OR across id, userId and sessionId term={}", orSearch);
+            return cartRepository.findByUserIdContainingIgnoreCaseOrSessionIdContainingIgnoreCaseOrId(
+                    orSearch, orSearch, id, pageRequest);
+        }
+
+        if (!userId.isBlank() && !sessionId.isBlank()) {
+            log.info("Searching carts with AND userId={} sessionId={}", userId, sessionId);
+            return cartRepository.findByUserIdContainingIgnoreCaseAndSessionIdContainingIgnoreCase(
+                    userId, sessionId, pageRequest);
+        }
+        if (!userId.isBlank()) {
+            log.info("Searching carts by userId={}", userId);
+            return cartRepository.findByUserIdContainingIgnoreCase(userId, pageRequest);
+        }
+        if (!sessionId.isBlank()) {
+            log.info("Searching carts by sessionId={}", sessionId);
+            return cartRepository.findBySessionIdContainingIgnoreCase(sessionId, pageRequest);
+        }
+        return cartRepository.findAll(pageRequest);
     }
 
     @GetMapping("/new")
@@ -202,6 +240,23 @@ public class CartController {
     private void validateId(Integer id) {
         if (id == null || id <= 0) {
             throw new InvalidCartRequestException();
+        }
+    }
+
+    private String normalizeSearch(String value, int maxLength) {
+        String normalized = value == null ? "" : value.trim();
+        if (normalized.length() > maxLength
+                || normalized.chars().anyMatch(Character::isISOControl)) {
+            throw new InvalidCartRequestException();
+        }
+        return normalized;
+    }
+
+    private Integer parseSearchId(String search) {
+        try {
+            return Integer.valueOf(search);
+        } catch (NumberFormatException exception) {
+            return null;
         }
     }
 }

@@ -1,6 +1,6 @@
 # 03 — Arquitectura
 
-Cart es una aplicación web MVC server-side. El navegador envía solicitudes HTTP, el controlador valida y coordina la operación, el repositorio delega la persistencia en JPA/Hibernate y MySQL almacena los registros.
+Cart es un microservicio Spring Boot independiente. El panel Angelow envía consultas HTTP al endpoint REST, el controlador valida paginación y búsqueda, el repositorio delega la lectura en JPA/Hibernate y PostgreSQL (`cart-db`) almacena los registros.
 
 ## Flujo general
 
@@ -13,7 +13,7 @@ flowchart TD
     E --> F[DTO + Bean Validation]
     F --> G[CartRepository]
     G --> H[JPA / Hibernate]
-    H --> I[(MySQL: carts)]
+    H --> I[(PostgreSQL Angelow: carts)]
 ~~~
 
 Los filtros se ejecutan antes de la lógica del controlador. Un límite excedido devuelve 429 sin llegar al controlador; un POST sin token CSRF válido es rechazado por Spring Security. Las páginas HTML las renderiza Thymeleaf.
@@ -91,7 +91,7 @@ CartCreateRequest y CartUpdateRequest son objetos distintos de Cart. Ambos valid
 
 ### Entidad
 
-Cart se mapea a la tabla carts. Su id es autogenerado por MySQL. createdAt se establece en PrePersist; updatedAt se establece al crear y se renueva en PreUpdate.
+Cart se mapea a la tabla `carts`. Su id es autogenerado por PostgreSQL. El microservicio no modifica el esquema compartido.
 
 ### Repositorio
 
@@ -112,8 +112,8 @@ La configuración actual se agrupa así:
 | Grupo | Propiedades verificadas | Propósito |
 | --- | --- | --- |
 | Aplicación y puerto | spring.application.name=cart, server.port=8081 | Nombre y puerto HTTP. |
-| Datasource | URL JDBC hacia localhost:3309/angelow, usuario y credencial configurados | Conexión con MySQL local. |
-| JPA | ddl-auto=update, show-sql=true, SQL formateado | Actualiza el esquema y muestra SQL de Hibernate durante el desarrollo. |
+| Datasource | URL JDBC parametrizada hacia localhost:5435/angelow_cart | Conexión directa con la base de carritos de Angelow. |
+| JPA | ddl-auto=none, show-sql=true, SQL formateado | Consulta el esquema existente sin intentar migrarlo. |
 | Rate limiting | app.rate-limit.* | Límites, capacidad, expiración y limpieza. |
 | Paginación | app.cart.default-page-size=20, max-page-size=100, max-page-number=10000 | Acota las consultas de listado. |
 | Formularios | max-http-form-post-size=128KB, max-swallow-size=128KB, max-parameter-count=100 | Evita formularios desproporcionados. |
@@ -132,9 +132,9 @@ La contraseña real no se reproduce en esta documentación. En un despliegue seg
 | spring-boot-starter-thymeleaf | Renderizado de vistas HTML. |
 | spring-boot-starter-validation | Jakarta Bean Validation y @Valid. |
 | spring-boot-starter-security | Cadena de filtros y protección CSRF. |
-| mysql-connector-j | Driver JDBC de MySQL en runtime. |
+| postgresql | Driver JDBC de PostgreSQL en runtime. |
 | spring-boot-docker-compose | Integración opcional de Spring Boot con Compose en runtime. |
-| Dependencias *-test y Testcontainers | Pruebas MVC, JPA, contexto y MySQL temporal. |
+| Dependencias *-test y Testcontainers | Pruebas MVC, JPA, contexto y PostgreSQL temporal. |
 
 ## Estado de autenticación
 
@@ -147,4 +147,3 @@ login, usuarios, roles o permisos
 ~~~
 
 En este proyecto anyRequest().permitAll() permite el CRUD sin iniciar sesión. La seguridad implementada protege la integridad de las peticiones (CSRF), añade headers y limita solicitudes, pero no controla quién puede ver o modificar un carrito.
-

@@ -36,10 +36,10 @@ java -jar target/cart-0.0.1-SNAPSHOT.jar
 
 ## Resultado verificado
 
-El 31 de agosto de 2026 se ejecutó .\mvnw.cmd test con este resultado:
+El 14 de septiembre de 2026 se ejecutó .\mvnw.cmd test con este resultado:
 
 ~~~text
-Tests run: 18, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 27, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ~~~
 
@@ -55,7 +55,10 @@ Este resultado describe esa ejecución concreta; no es una garantía permanente 
 | RateLimitFilterTest | 1 | 429, Retry-After y separación entre clientes. |
 | RateLimitServiceTest | 2 | Límite por cliente, expiración y capacidad máxima. |
 | SecurityHeadersFilterTest | 1 | Headers de seguridad. |
-| **Total** | **18** | **18 exitosas en la ejecución verificada.** |
+| AdminCartRestControllerTest | 3 | Consulta REST paginada, estadísticas, filtros y errores controlados. |
+| CartSearchTest | 3 | Búsquedas AND/OR y conservación de criterios. |
+| CartValidationTest | 3 | Validación de fechas, userId y sessionId. |
+| **Total** | **27** | **27 exitosas en la ejecución verificada.** |
 
 ## Inventario de pruebas reales
 
@@ -107,20 +110,20 @@ Este resultado describe esa ejecución concreta; no es una garantía permanente 
 | --- | --- |
 | addsBasicSecurityHeaders | X-Content-Type-Options, Referrer-Policy y Content-Security-Policy. |
 
-## Testcontainers y MySQL temporal
+## Testcontainers y PostgreSQL temporal
 
-La prueba de contexto importa TestcontainersConfiguration, que crea un MySQLContainer con la imagen mysql:latest y conexión administrada por Spring Boot:
+La prueba de contexto importa TestcontainersConfiguration, que crea un PostgreSQLContainer con una imagen PostgreSQL y conexión administrada por Spring Boot:
 
 ~~~mermaid
 flowchart TD
     A[JUnit] --> B[Testcontainers]
-    B --> C[MySQL temporal]
+    B --> C[PostgreSQL temporal]
     C --> D[Contexto Spring + JPA]
     D --> E[Prueba]
     E --> F[Recurso eliminado al terminar]
 ~~~
 
-Este MySQL usa un puerto dinámico y no es necesariamente el servicio mysql:8.4.7 del compose.yaml. Por eso las pruebas de contexto necesitan Docker Desktop funcionando aunque el MySQL de Compose no esté iniciado.
+Este PostgreSQL usa un puerto dinámico y no es la base `cart-db` compartida de Angelow. Por eso las pruebas de contexto necesitan Docker Desktop funcionando aunque la base compartida no esté iniciada.
 
 Las pruebas del controlador usan MockMvc y Mockito para aislar CartRepository. En consecuencia, la suite combina una prueba de contexto con base temporal y pruebas MVC enfocadas en comportamiento, seguridad y límites.
 
@@ -134,4 +137,3 @@ docker info
 ~~~
 
 Docker Engine debe estar disponible. Si el problema es una imagen no descargada, revisa la conexión de Docker Desktop y vuelve a ejecutar la suite. No elimines volúmenes del proyecto para solucionar un fallo de Testcontainers.
-

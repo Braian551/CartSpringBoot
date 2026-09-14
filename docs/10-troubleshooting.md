@@ -14,46 +14,55 @@ La última columna es el PID del proceso. Identifica el proceso con las herramie
 
 Si necesitas ejecutar temporalmente la aplicación en otro puerto, esa decisión cambia la configuración de ejecución; recuerda que las instrucciones y la URL documentadas usan 8081.
 
-## MySQL no inicia porque el puerto está ocupado
+Con el Compose puedes conservar el puerto interno 8081 y cambiar solo el puerto del host:
+
+~~~powershell
+$env:CART_API_PORT = "8082"
+docker compose up -d --build
+~~~
+
+En ese caso, configura también `VITE_CART_ADMIN_API_URL=http://localhost:8082/api` en el frontend.
+
+## PostgreSQL compartido no inicia porque el puerto está ocupado
 
 Comprueba el puerto publicado:
 
 ~~~powershell
-netstat -ano | findstr :3309
+netstat -ano | findstr :5435
 ~~~
 
-El host debe poder publicar 3309 para dirigirlo al 3306 del contenedor. Revisa qué proceso usa el puerto antes de cambiar Compose. Si modificas el puerto del host, también debes actualizar la URL JDBC de Spring y las instrucciones de conexión.
+El host debe poder publicar 5435 para dirigirlo al 5432 de `cart-db`. Revisa qué proceso usa el puerto antes de cambiar el Compose de Angelow. Si modificas el puerto del host, también debes actualizar `CART_DB_PORT` y las instrucciones de conexión.
 
-## MySQL no aparece activo
+## PostgreSQL compartido no aparece activo
 
 ~~~powershell
 docker compose ps
-docker compose logs --tail 100 mysql
+docker compose logs --tail 100 cart-db
 ~~~
 
 Revisa:
 
 - Docker Desktop está iniciado.
-- El servicio mysql aparece en estado Up.
-- El contenedor usa la imagen declarada en compose.yaml.
+- El servicio `cart-db` aparece en estado Up.
+- El contenedor usa la imagen PostgreSQL declarada en el Compose de Angelow.
 - No hay errores de inicialización en los logs.
-- MySQL ha terminado su arranque antes de iniciar Spring.
+- PostgreSQL ha terminado su arranque antes de iniciar la API Java.
 
 Compose no define un healthcheck; Up significa que el contenedor está ejecutándose, no necesariamente que MySQL ya acepte conexiones. Espera unos segundos y vuelve a consultar.
 
-## Spring no puede conectarse a MySQL
+## Spring no puede conectarse a PostgreSQL
 
 Comprueba en este orden:
 
 1. Docker Engine está disponible.
-2. El servicio mysql está Up.
-3. El puerto publicado sigue siendo 3309.
-4. La base de datos configurada es angelow.
+2. El servicio `cart-db` está Up.
+3. El puerto publicado sigue siendo 5435.
+4. La base de datos configurada es `angelow_cart`.
 5. El usuario configurado en Spring coincide con el de Compose.
 6. La credencial configurada en Spring coincide con la de Compose.
-7. El contenedor no muestra errores en docker compose logs mysql.
+7. El contenedor no muestra errores en `docker compose logs cart-db` desde Angelow.
 
-No pegues credenciales en issues, capturas ni documentación. La conexión actual apunta a localhost:3309, no a 3306 del host.
+No pegues credenciales en issues, capturas ni documentación. La conexión local apunta a `localhost:5435`; dentro del contenedor usa `host.docker.internal:5435`.
 
 ## Error 400 — Solicitud inválida
 
@@ -153,4 +162,3 @@ docker compose ps
 5. Confirmar puertos, base de datos y configuración sin exponer credenciales.
 6. Reproducir con una prueba o comando de lectura.
 ~~~
-

@@ -12,6 +12,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.example.cart.security.RateLimitService.RateLimitDecision;
 import com.example.cart.security.RateLimitService.RateLimitType;
@@ -19,6 +21,8 @@ import com.example.cart.security.RateLimitService.RateLimitType;
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 public class RateLimitFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
 
     private final RateLimitService rateLimitService;
 
@@ -29,7 +33,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return !"/cart".equals(uri) && !uri.startsWith("/cart/");
+        boolean mvcCartRoute = "/cart".equals(uri) || uri.startsWith("/cart/");
+        boolean restCartRoute = "/api/admin/carts".equals(uri) || uri.startsWith("/api/admin/carts/");
+        return !mvcCartRoute && !restCartRoute;
     }
 
     @Override
@@ -43,6 +49,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         RateLimitDecision decision = rateLimitService.tryAcquire(clientId, type);
         if (!decision.allowed()) {
+            log.warn("Rate limit exceeded client={} method={} uri={} type={}",
+                    clientId, request.getMethod(), request.getRequestURI(), type);
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setHeader("Retry-After", Long.toString(decision.retryAfterSeconds()));
             response.setContentType("application/json");
